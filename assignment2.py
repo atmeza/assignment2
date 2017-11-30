@@ -14,7 +14,8 @@ def feature(datum):
 
 def main():
     print("Reading data...")
-    musicData = list(parseData('file.json'))
+    musicData = list(parseData('file_name_here'))
+    print musicData[0]
 
 
 if __name__ == "__main__": main()
