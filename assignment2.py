@@ -1,8 +1,19 @@
-import urllib
+import csv
 
 def parseData(fname):
-    for l in urllib.urlopen(fname):
-        yield eval(l)
+    data = []
+    with open(fname, "rb") as f:
+        reader = csv.reader(f, delimiter=",")
+        for i, line in enumerate(reader):
+            data.append(line)
+
+    return data
+
+def splitData(data):
+    train = []
+    test = []
+
+
 
 def feature(datum):
     feat = []
@@ -14,8 +25,8 @@ def feature(datum):
 
 def main():
     print("Reading data...")
-    musicData = list(parseData('file_name_here'))
-    print musicData[0]
+    musicData = parseData('../lyrics.csv')
+    print len(musicData)
 
 
 if __name__ == "__main__": main()
