@@ -9,8 +9,6 @@ def feature(datum):
     feat.append(1)
 
     return feat
-
-
 def countWords(train, validation, test):
     wordCounts = defaultdict(int)
 
@@ -22,13 +20,13 @@ def countWords(train, validation, test):
         lyrics = str(d[5])
         predicate = lambda x:x not in string.punctuation
         lyrics = filter(predicate, lyrics.lower())
-        words = lyrics.split()
+        words = str(lyrics).split()
 
         for word in words:
             wordCounts[word] += 1
 
     # Sort word frequency from highest to lowest
-    sort = sorted(wordCounts.items(), key=lambda(k,v): v, reverse=True)
+    sort = sorted(wordCounts.items(), key=lambda kv: kv[1], reverse=True)
     sort = sort[:500]
     popularWords = [[d[0], d[1]] for d in sort]
 
@@ -47,7 +45,7 @@ def countWords(train, validation, test):
         i += 1
 
     # Sort percentages from highest to lowest
-    sort = sorted(freqWords.items(), key=lambda(k,v): v, reverse=True)
+    sort = sorted(freqWords.items(), key=lambda kv: kv[1], reverse=True)
     popularFreq = [[d[0], d[1]] for d in sort]
 
     # Calculate frequency of words per genre
@@ -59,14 +57,14 @@ def countWords(train, validation, test):
             lyrics = str(d[5])
             predicate = lambda x: x not in string.punctuation
             lyrics = filter(predicate, lyrics.lower())
-            words = lyrics.split()
+            words = str(lyrics).split()
 
             for word in popularWords:
                 count = words.count(word[0])
                 genreCount[word[0]] += count
 
     # Sort percentages from highest to lowest
-    sort = sorted(genreCount.items(), key=lambda(k,v): v, reverse=True)
+    sort = sorted(genreCount.items(), key=lambda kv: kv[1], reverse=True)
     popularGenre = [[d[0], d[1]] for d in sort]
 
     # Calculate percentage of word frequency per genre among all 500 words
@@ -84,7 +82,7 @@ def countWords(train, validation, test):
         i += 1
 
     # Sort percentages from highest to lowest
-    sort = sorted(freqGenre.items(), key=lambda (k, v): v, reverse=True)
+    sort = sorted(freqGenre.items(), key=lambda kv:kv[1], reverse=True)
     genreFreq = [[d[0], d[1]] for d in sort]
 
     # Calculate difference between genre word percentage and word percentage
@@ -98,19 +96,19 @@ def countWords(train, validation, test):
     # sort = sorted(diffFreq.items(), key=lambda(k,v): v, reverse=True)
     # diffFreq = [[d[0], d[1]] for d in sort]
 
-    print
     print(popularFreq[:10])
-    print
+
     print(genreFreq[:10])
-    print
+
     print(diffFreq[:10])
-
-
+def baseline_score(X, y)
 def main():
     print("Reading data...")
 
     #read in csv and shuffle dataframe and only use 100k rows
     data = pd.read_csv("./lyrics.csv")
+    data = data.dropna(how='any')
+
     shuffled_data = data.sample(frac=1)
     shuffled_data = shuffled_data[:100000]
 
@@ -119,16 +117,32 @@ def main():
     validation_set = shuffled_data[int(len(shuffled_data)*.5):int(len(shuffled_data)*.8)]
     test_set = shuffled_data[int(len(shuffled_data)*.8):]
 
+    
+
     #from dataframe to np array
     train_set = train_set.as_matrix()
     validation_set = validation_set.as_matrix()
     test_set = test_set.as_matrix()
 
-    countWords(train_set, validation_set, test_set)
+    #split sets into features and labels
+    train_features = np.column_stack((train_set[:3], train_set[5]))
+    train_labels = np.column_stack(train_set[4])
+    val_features = np.column_stack((validation_set[:3], validation_set[5]))
+    val_labels = np.column_stack(validation_set[4])
+    test_features = np.column_stack((test_set[:3], test_set[5]))
+    test_labels = np.column_stack(test_set[4])
 
-    # print(train_set.shape)
-    # print(validation_set.shape)
-    # print(test_set.shape)
+
+    # get all words and their frequencies
+    #genre_word_freq = countWords(train_set, validation_set, test_set)
+
+    baseline_score(test_features, test_labels)
+
+
+
+
+
+
 
 if __name__ == "__main__":
     main()
