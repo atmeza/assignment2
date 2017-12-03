@@ -1,5 +1,7 @@
 import csv
 import random
+import pandas as pd
+import numpy as np
 
 def parseData(fname):
     data = []
@@ -29,8 +31,8 @@ def splitData(data):
         testFile.write(str(data[rand]) + '\n')
         data.remove(data[rand])
 
-        print len(data)
-
+        
+	
     trainFile.close()
     testFile.close()
     return [train, test]
@@ -47,8 +49,23 @@ def feature(datum):
 def main():
     print("Reading data...")
 
-    trainX = [d for d in open('../trainFile.txt', 'r')]
-    testX = [d for d in open('../testFile.txt', 'r')]
+    #read in csv and shuffle dataframe and only use 100k rows
+    data = pd.read_csv("./lyrics.csv")
+    shuffled_data = data.sample(frac=1)
+    shuffled_data = shuffled_data[:100000]
+    #split dataframe into train, val, and test sets
+    train_set = shuffled_data[:int(len(shuffled_data)*.5)]
+    validation_set = shuffled_data[int(len(shuffled_data)*.5):int(len(shuffled_data)*.8)]
+    test_set = shuffled_data[int(len(shuffled_data)*.8):]
 
+    #from dataframe to np array
+    train_set = train_set.as_matrix()
+    validation_set = validation_set.as_matrix()
+    test_set = test_set.as_matrix()
+
+
+    print(train_set.shape)
+    print(validation_set.shape)
+    print(test_set.shape)
 
 if __name__ == "__main__": main()
