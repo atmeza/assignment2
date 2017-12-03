@@ -11,24 +11,22 @@ def feature(datum):
     return feat
 
 
-def countWords(train, validation, test):
+def countWords(data):
     wordCounts = defaultdict(int)
-
-    data = np.concatenate([train, validation, test], axis=0)
 
     # Calculates frequency of top 500 words in train, validation, and test datasets
     print("Calculating frequency of top 500 words...")
     for d in data:
         lyrics = str(d[5])
-        predicate = lambda x:x not in string.punctuation
-        lyrics = filter(predicate, lyrics.lower())
-        words = lyrics.split()
+        translator = lyrics.maketrans('', '', string.punctuation)
+        lyrics = lyrics.translate(translator)
+        words = str(lyrics.lower()).split()
 
         for word in words:
             wordCounts[word] += 1
 
     # Sort word frequency from highest to lowest
-    sort = sorted(wordCounts.items(), key=lambda(k,v): v, reverse=True)
+    sort = sorted(wordCounts.items(), key=lambda kv: kv[1], reverse=True)
     sort = sort[:500]
     popularWords = [[d[0], d[1]] for d in sort]
 
@@ -47,7 +45,7 @@ def countWords(train, validation, test):
         i += 1
 
     # Sort percentages from highest to lowest
-    sort = sorted(freqWords.items(), key=lambda(k,v): v, reverse=True)
+    sort = sorted(freqWords.items(), key=lambda kv: kv[1], reverse=True)
     popularFreq = [[d[0], d[1]] for d in sort]
 
     # Calculate frequency of words per genre
@@ -57,16 +55,16 @@ def countWords(train, validation, test):
         genre = d[4]
         if genre == 'Pop':
             lyrics = str(d[5])
-            predicate = lambda x: x not in string.punctuation
-            lyrics = filter(predicate, lyrics.lower())
-            words = lyrics.split()
+            translator = lyrics.maketrans('', '', string.punctuation)
+            lyrics = lyrics.translate(translator)
+            words = str(lyrics).split()
 
             for word in popularWords:
                 count = words.count(word[0])
                 genreCount[word[0]] += count
 
     # Sort percentages from highest to lowest
-    sort = sorted(genreCount.items(), key=lambda(k,v): v, reverse=True)
+    sort = sorted(genreCount.items(), key=lambda kv: kv[1], reverse=True)
     popularGenre = [[d[0], d[1]] for d in sort]
 
     # Calculate percentage of word frequency per genre among all 500 words
@@ -84,19 +82,26 @@ def countWords(train, validation, test):
         i += 1
 
     # Sort percentages from highest to lowest
-    sort = sorted(freqGenre.items(), key=lambda (k, v): v, reverse=True)
+    sort = sorted(freqGenre.items(), key=lambda kv: kv[1], reverse=True)
     genreFreq = [[d[0], d[1]] for d in sort]
 
     # Calculate difference between genre word percentage and word percentage
     print("Calculating difference...")
-    # diffFreq = defaultdict(int)
-    # for word in popularFreq:
-    #     diff = genreFreq[word][1] - popularFreq[word][1]
-    #     diffFreq[word] = diff
+    diffFreq = defaultdict(int)
+    i = 0
+    for word in popularFreq:
+        j = 0
+        for g in genreFreq:
+            if word[0] == g[0]:
+                diff = genreFreq[j][1] - popularFreq[i][1]
+                diffFreq[word[0]] = diff
+            j += 1
+        i += 1
 
     # Sort percentages from highest to lowest
-    # sort = sorted(diffFreq.items(), key=lambda(k,v): v, reverse=True)
-    # diffFreq = [[d[0], d[1]] for d in sort]
+    sort = sorted(diffFreq.items(), key=lambda kv: kv[1], reverse=True)
+    diffFreq = [[d[0], d[1]] for d in sort]
+
 
     print
     print(popularFreq[:10])
@@ -104,6 +109,7 @@ def countWords(train, validation, test):
     print(genreFreq[:10])
     print
     print(diffFreq[:10])
+    print(len(diffFreq))
 
 
 def main():
@@ -124,7 +130,18 @@ def main():
     validation_set = validation_set.as_matrix()
     test_set = test_set.as_matrix()
 
-    countWords(train_set, validation_set, test_set)
+    countWords(train_set)
+
+    allData = np.concatenate([train_set, validation_set, test_set], axis=0)
+    genreCount = defaultdict(int)
+    for d in allData:
+        genre = d[4]
+        genreCount[genre] += 1
+
+    sort = sorted(genreCount.items(), key=lambda kv: kv[1], reverse=True)
+    print(len(allData))
+    print(len(sort))
+    print(sort)
 
     # print(train_set.shape)
     # print(validation_set.shape)
