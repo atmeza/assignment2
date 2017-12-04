@@ -46,18 +46,30 @@ def dataStats(data):
     print(genreInLyrics)
     print()
 
+    # Calculate number of unique artists, average number of songs per artist, and most popular artist
+    artistCount = defaultdict(int)
+    count = 0
+    for d in data:
+        artist = d[3]
+        artistCount[artist] += 1
+        count += 1
 
-def feature(datum):
-    feat = []
-    feat.append(1)
+    sort = sorted(artistCount.items(), key=lambda kv: kv[1], reverse=True)
 
-    return feat
+    print("Number of unique artists")
+    print(len(artistCount))
+    print()
+    print("Average number of songs per artist")
+    print(count * 1.0 / len(artistCount))
+    print()
+    print("Most popular artist")
+    print(str(sort[0][0]) + ', ' + str(sort[0][1]))
+    print()
 
 
 def countWords(data):
     wordCounts = defaultdict(int)
     genres = defaultdict(int)
-    # commonWords = ['i', 'and', 'a', 'of', 'in', 'to', 'is', 'was', 'the', ]
 
     # Calculates frequency of top 500 words in train, validation, and test datasets
     print("Calculating frequency of top 500 words...")
@@ -65,7 +77,7 @@ def countWords(data):
         lyrics = str(d[5])
         translator = lyrics.maketrans('', '', string.punctuation)
         lyrics = lyrics.translate(translator)
-        words = str(lyrics.lower()).split()
+        words = str(lyrics.lower()).strip().split()
 
         for word in words:
             wordCounts[word] += 1
@@ -75,7 +87,7 @@ def countWords(data):
 
     # Sort word frequency from highest to lowest
     sort = sorted(wordCounts.items(), key=lambda kv: kv[1], reverse=True)
-    sort = sort[:500]
+    sort = sort[:230]
     popularWords = [[d[0], d[1]] for d in sort]
 
     # Calculate percentage of word frequency among all 500 words
@@ -104,7 +116,7 @@ def countWords(data):
         lyrics = str(d[5])
         translator = lyrics.maketrans('', '', string.punctuation)
         lyrics = lyrics.translate(translator)
-        words = str(lyrics).split()
+        words = str(lyrics).lower().strip().split()
 
         for word in popularWords:
             count = words.count(word[0])
@@ -166,7 +178,7 @@ def predictGenre(testSet, data, genres):
 
     i = 1
     print("Starting predictions...")
-   
+
     for test in testSet:
         for g in genres:
             count = 0
@@ -174,12 +186,15 @@ def predictGenre(testSet, data, genres):
             lyrics = str(test[5])
             translator = lyrics.maketrans('', '', string.punctuation)
             lyrics = lyrics.translate(translator)
-            words = str(lyrics).strip().split()
+            words = str(lyrics).lower().strip().split()
 
             for w in words:
                 for val in genre:
                     if w == val[0]:
-                        count += val[1]
+                        if w in genres:
+                            count += val[1] * 4
+                        else:
+                            count += val[1]
                         break
 
             genreCount[g] = count
@@ -189,7 +204,6 @@ def predictGenre(testSet, data, genres):
         
         i += 1
 
-    print(predictions)
     correct = 0
     for p in predictions:
         if p[0] == p[1]:
@@ -206,7 +220,8 @@ def baseline_score(X, y):
     genres = []
     for genre in y:
         genre_freq[genre]+=1
-        genres.append(genre)
+        if genre not in genres:
+            genres.append(genre)
     most_popular_genre = max(genre_freq.items(), key=operator.itemgetter(1))[0]
     punctuation = string.punctuation
     accurate = 0
@@ -229,7 +244,7 @@ def baseline_score(X, y):
         if(predict == y):
             accurate+=1
 
-    return accurate/total
+    return accurate / total * 100.0
 
 
 
@@ -241,10 +256,10 @@ def main():
     data = data.dropna(how='any')
     shuffled_data = data.sample(frac=1)
     shuffled_data = shuffled_data[:10000]
-    for ind, row in shuffled_data.iterrows():
-    	if row['genre'] == 'Not Available':
-    		shuffled_data.drop(ind, inplace=True)
 
+    for ind, row in shuffled_data.iterrows():
+        if row['genre'] == 'Not Available':
+            shuffled_data.drop(ind, inplace=True)
 
     # split dataframe into train, val, and test sets
     train_set = shuffled_data[:int(len(shuffled_data)*.5)]
@@ -264,9 +279,9 @@ def main():
     test_features = np.column_stack((test_set[:,:4], test_set[:,5]))
     test_labels = test_set[:,4]
 
-    # Preprocessing data
+    # Pre-processing data
     data = np.concatenate([train_set, validation_set, test_set], axis=0)
-    dataStats(data)
+    # dataStats(data)
 	
     # calculate most popular words and their frequency by genre
     genrePopularWords, genres = countWords(train_set)
