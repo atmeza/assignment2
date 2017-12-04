@@ -130,14 +130,15 @@ def baseline_score(X, y):
 		lyrics = x[4]
 		lyrics =''.join([c for c in lyrics.lower() if not c in punctuation])
 		predict = str()
+		
 		for w in genres:
 			if(w in lyrics.split()):
 				predict = w
 				break
-
+		"""
 		if not predict:
 			predict = most_popular_genre
-
+		"""
 		if(predict == y):
 			accurate+=1
 
@@ -181,8 +182,8 @@ def main():
 
 	print(b_score)
 
-	for genre, popwords in countWords.items():
-		for word, count  in popwords[:5].items():
+	for genre, popwords in genrePopularWords.items():
+		for word, count  in popwords[:5]:
 
 			print(word, count)
 
