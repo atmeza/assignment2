@@ -13,6 +13,7 @@ def feature(datum):
 
 def countWords(data):
     wordCounts = defaultdict(int)
+    genres = defaultdict(int)
 
     # Calculates frequency of top 500 words in train, validation, and test datasets
     print("Calculating frequency of top 500 words...")
@@ -24,6 +25,9 @@ def countWords(data):
 
         for word in words:
             wordCounts[word] += 1
+
+        genre = d[4]
+        genres[genre] += 1
 
     # Sort word frequency from highest to lowest
     sort = sorted(wordCounts.items(), key=lambda kv: kv[1], reverse=True)
@@ -49,67 +53,66 @@ def countWords(data):
     popularFreq = [[d[0], d[1]] for d in sort]
 
     # Calculate frequency of words per genre
-    print("Calculating genre frequency of top 500 words")
-    genreCount = defaultdict(int)
+    print("Calculating genre frequency of top 500 words...")
+    genreCount = defaultdict(defaultdict(int).copy)
     for d in data:
         genre = d[4]
-        if genre == 'Pop':
-            lyrics = str(d[5])
-            translator = lyrics.maketrans('', '', string.punctuation)
-            lyrics = lyrics.translate(translator)
-            words = str(lyrics).split()
+        lyrics = str(d[5])
+        translator = lyrics.maketrans('', '', string.punctuation)
+        lyrics = lyrics.translate(translator)
+        words = str(lyrics).split()
 
-            for word in popularWords:
-                count = words.count(word[0])
-                genreCount[word[0]] += count
+        for word in popularWords:
+            count = words.count(word[0])
+            genreCount[genre][word[0]] += count
 
     # Sort percentages from highest to lowest
-    sort = sorted(genreCount.items(), key=lambda kv: kv[1], reverse=True)
-    popularGenre = [[d[0], d[1]] for d in sort]
+    for gc in genres:
+        sort = sorted(genreCount[gc].items(), key=lambda kv: kv[1], reverse=True)
+        genreCount[gc] = sort
 
     # Calculate percentage of word frequency per genre among all 500 words
     print("Calculating percentage of genre word frequency...")
-    freqGenre = defaultdict(int)
-    i = 0
-    for word in popularGenre:
-        count = 0
-        j = 0
-        for w in popularGenre:
-            count += popularGenre[j][1]
-            j += 1
+    freqGenre = defaultdict(defaultdict(int).copy)
+    for gc in genres:
+        for word in genreCount[gc]:
+            count = 0
+            for w in genreCount[gc]:
+                count += w[1]
 
-        freqGenre[word[0]] = popularGenre[i][1] * 1.0 / count
-        i += 1
+            freqGenre[gc][word[0]] = word[1] * 1.0 / count
 
     # Sort percentages from highest to lowest
-    sort = sorted(freqGenre.items(), key=lambda kv: kv[1], reverse=True)
-    genreFreq = [[d[0], d[1]] for d in sort]
+    for gc in genres:
+        sort = sorted(freqGenre[gc].items(), key=lambda kv: kv[1], reverse=True)
+        freqGenre[gc] = sort
 
     # Calculate difference between genre word percentage and word percentage
     print("Calculating difference...")
-    diffFreq = defaultdict(int)
-    i = 0
-    for word in popularFreq:
-        j = 0
-        for g in genreFreq:
-            if word[0] == g[0]:
-                diff = genreFreq[j][1] - popularFreq[i][1]
-                diffFreq[word[0]] = diff
-            j += 1
-        i += 1
+    diffFreq = defaultdict(defaultdict(int).copy)
+    for gc in genres:
+        i = 0
+        for word in popularFreq:
+            j = 0
+            for g in freqGenre[gc]:
+                if word[0] == g[0]:
+                    diff = g[1] - popularFreq[i][1]
+                    diffFreq[gc][word[0]] = diff
+                j += 1
+            i += 1
 
     # Sort percentages from highest to lowest
-    sort = sorted(diffFreq.items(), key=lambda kv: kv[1], reverse=True)
-    diffFreq = [[d[0], d[1]] for d in sort]
+    for gc in genres:
+        sort = sorted(diffFreq[gc].items(), key=lambda kv: kv[1], reverse=True)
+        diffFreq[gc] = sort
 
+    # for gc in genres:
+    #     print('Genre:', gc)
+    #     for d in diffFreq[gc]:
+    #         print(d)
+    #     print()
 
-    print
-    print(popularFreq[:10])
-    print
-    print(genreFreq[:10])
-    print
-    print(diffFreq[:10])
-    print(len(diffFreq))
+    return diffFreq
 
 
 def main():
@@ -130,18 +133,7 @@ def main():
     validation_set = validation_set.as_matrix()
     test_set = test_set.as_matrix()
 
-    countWords(train_set)
-
-    allData = np.concatenate([train_set, validation_set, test_set], axis=0)
-    genreCount = defaultdict(int)
-    for d in allData:
-        genre = d[4]
-        genreCount[genre] += 1
-
-    sort = sorted(genreCount.items(), key=lambda kv: kv[1], reverse=True)
-    print(len(allData))
-    print(len(sort))
-    print(sort)
+    genrePopularWords = countWords(train_set)
 
     # print(train_set.shape)
     # print(validation_set.shape)
