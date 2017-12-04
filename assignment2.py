@@ -166,7 +166,7 @@ def predictGenre(testSet, data, genres):
 
     i = 1
     print("Starting predictions...")
-    print(len(testSet))
+   
     for test in testSet:
         for g in genres:
             count = 0
@@ -186,7 +186,7 @@ def predictGenre(testSet, data, genres):
 
         sort = sorted(genreCount.items(), key=lambda kv: kv[1], reverse=True)
         predictions.append([sort[0][0], test[4]])
-        print(i, sort[0][0], test[4])
+        
         i += 1
 
     print(predictions)
@@ -219,13 +219,13 @@ def baseline_score(X, y):
         predict = str()
 		
         for w in genres:
-            if(w in lyrics.split()):
+            if(w.lower() in lyrics.split()):
                 predict = w
                 break
-        """
+        
         if not predict:
             predict = most_popular_genre
-		"""
+		
         if(predict == y):
             accurate+=1
 
@@ -241,6 +241,10 @@ def main():
     data = data.dropna(how='any')
     shuffled_data = data.sample(frac=1)
     shuffled_data = shuffled_data[:10000]
+    for ind, row in shuffled_data.iterrows():
+    	if row['genre'] == 'Not Available':
+    		shuffled_data.drop(ind, inplace=True)
+
 
     # split dataframe into train, val, and test sets
     train_set = shuffled_data[:int(len(shuffled_data)*.5)]
@@ -273,10 +277,7 @@ def main():
 
     print(b_score)
 
-    for genre, popwords in genrePopularWords.items():
-        for word, count  in popwords[:5]:
-
-            print(word, count)
+    
 	
 
 if __name__ == "__main__":
