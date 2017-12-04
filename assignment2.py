@@ -1,4 +1,5 @@
 import pandas as pd
+import operator
 import numpy as np
 from collections import defaultdict
 import string
@@ -20,6 +21,7 @@ def countWords(train, validation, test):
         lyrics = str(d[5])
         predicate = lambda x:x not in string.punctuation
         lyrics = filter(predicate, lyrics.lower())
+
         words = str(lyrics).split()
 
         for word in words:
@@ -101,7 +103,23 @@ def countWords(train, validation, test):
     print(genreFreq[:10])
 
     print(diffFreq[:10])
-def baseline_score(X, y)
+def baseline_score(X, y, genre_word_freq):
+
+	genre_freq = defaultdict(int)
+	for genre, word_freq in genre_word_freq:
+		genre_freq[genre]+=1
+
+	most_popular_genre = max(genre_freq.iteritems(), key=operator.itemgetter(1))[0]
+	punctuation = string.punctuation
+
+	for x,y in zip(X,y):
+		lyrics = x[4]
+		lyrics =''.join([c for c in lyrics.lower() if not c in punctuation])
+		for word in lyrics.split():
+			if word is 
+	return 0
+
+
 def main():
     print("Reading data...")
 
@@ -125,18 +143,20 @@ def main():
     test_set = test_set.as_matrix()
 
     #split sets into features and labels
-    train_features = np.column_stack((train_set[:3], train_set[5]))
-    train_labels = np.column_stack(train_set[4])
-    val_features = np.column_stack((validation_set[:3], validation_set[5]))
-    val_labels = np.column_stack(validation_set[4])
-    test_features = np.column_stack((test_set[:3], test_set[5]))
-    test_labels = np.column_stack(test_set[4])
+    train_features = np.column_stack((train_set[:,:4], train_set[:,5]))
+    train_labels = train_set[:,4]
+    val_features = np.column_stack((validation_set[:,:4], validation_set[:,5]))
+    val_labels = validation_set[:,4]
+    test_features = np.column_stack((test_set[:,:4], test_set[:,5]))
+    test_labels = test_set[:,4]
 
+    print(train_features[0])
+    print(train_labels[0])
 
     # get all words and their frequencies
     #genre_word_freq = countWords(train_set, validation_set, test_set)
 
-    baseline_score(test_features, test_labels)
+    baseline_score(test_features, test_labels, genre_word_freq)
 
 
 
