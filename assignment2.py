@@ -189,7 +189,7 @@ def predictGenre(testSet, data, genres):
         
         i += 1
 
-    print(predictions)
+   
     correct = 0
     for p in predictions:
         if p[0] == p[1]:
